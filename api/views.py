@@ -51,5 +51,14 @@ class EntrenadorPokemonView(View):
             entrenador.save()
             datos={'message':"Entrenador editado!"}
         else:
-            datos={'message':"entrenador no encontrado..."}
+            datos={'message':"Entrenador no encontrado..."}
+        return JsonResponse(datos)
+
+    def delete(self, request, id):
+        Entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+        if len(Entrenadores)>0:
+            EntrenadorPokemon.objects.filter(id=id).delete()
+            datos={'message':"Entrenador eliminado!"}
+        else:
+            datos={'message':"Entrenador no encontrado..."}
         return JsonResponse(datos)
