@@ -37,5 +37,19 @@ class EntrenadorPokemonView(View):
             tipo = jd['tipo'], 
             numero_medallas = jd['numero_medallas']
             )
-        datos={'message':"Entrenador creado !"}
+        datos={'message':"Entrenador creado!"}
+        return JsonResponse(datos)
+
+    def put(self, request, id):
+        jd = json.loads(request.body)
+        entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+        if len(entrenadores)>0:
+            entrenador = EntrenadorPokemon.objects.get(id=id)
+            entrenador.region = jd['region']
+            entrenador.tipo = jd['tipo']
+            entrenador.numero_medallas = jd['numero_medallas']
+            entrenador.save()
+            datos={'message':"Entrenador editado!"}
+        else:
+            datos={'message':"entrenador no encontrado..."}
         return JsonResponse(datos)
