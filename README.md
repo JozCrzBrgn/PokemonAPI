@@ -244,4 +244,185 @@ Esto demuestra que el método GET funciona muy bien.
 
 ## **4) Método POST**
 
+Primero debemos crear un _crsf_ para poder autenticar que estamos haciendo las peticiones desde nuestro proyecto, esto lo evitamos con el decorador **csrf_exempt**. Y tambíen harémos uso de la librería para JSON, todo esto lo importamos como:
 
+```
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import json
+```
+
+Para usar el **csrf_exempt** usarémos una función llamada **dispatch**:
+
+```
+@method_decorator(csrf_exempt)
+def dispatch(self, request, *args, **kwargs):
+    return super().dispatch(request, *args, **kwargs)
+```
+
+Ahora sí, nuestro método POST quedaría como:
+
+```
+def post(self, request):
+    jd = json.loads(request.body)
+    print(jd)
+    EntrenadorPokemon.objects.create(
+        region = jd['region'], 
+        tipo = jd['tipo'], 
+        numero_medallas = jd['numero_medallas']
+        )
+    datos={'message':"Entrenador creado !"}
+    return JsonResponse(datos)
+```
+
+En resumen, nuestro archivo _views.py_ quedaría hasta ahora como:
+
+```
+from django.shortcuts import render
+from django.views import View
+from .models import EntrenadorPokemon
+from django.http.response import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+# Create your views here.
+class EntrenadorPokemonView(View):
+    def get(self, request, id=0):
+        if id>0:
+            entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+            if len(entrenadores)>0:
+                entrenador=entrenadores[0]
+                datos={'message':"Entrenador encontrado", 'entrenador':entrenador}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+        else:
+            entrenadores = list(EntrenadorPokemon.objects.values())
+            if len(entrenadores)>0:
+                datos={'message':"Entrenador encontrado", 'entrenadores':entrenadores}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        jd = json.loads(request.body)
+        print(jd)
+        EntrenadorPokemon.objects.create(
+            region = jd['region'], 
+            tipo = jd['tipo'], 
+            numero_medallas = jd['numero_medallas']
+            )
+        datos={'message':"Entrenador creado !"}
+        return JsonResponse(datos)
+```
+
+Para probar el método POST hacemos un nuevo request (cuadro verde) a la dirección (cuadro rojo):
+
+```
+http://127.0.0.1:8090/api/entrenadores/
+```
+
+pero mandando como parámetro el JSON en la sección del _body_ (cuadro azul):
+
+```
+{
+  "region":"Alola",
+  "tipo":"Maestro Pokémon",
+  "numero_medallas":15
+}
+```
+
+<p align="center">
+<img src="/ghImg/img20.png">
+</p>
+
+y al dar click en _Send_, obtenemos que la respuesta fue exitosa:
+
+<p align="center">
+<img src="/ghImg/img21.png">
+</p>
+
+## **5) Método PUT**
+
+El método PUT nos permitirá modificar los datos ingresados. 
+
+Queda definido por la siguiente función:
+
+```
+def put(self, request, id):
+    jd = json.loads(request.body)
+    entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+    if len(entrenadores)>0:
+        entrenador = EntrenadorPokemon.objects.get(id=id)
+        entrenador.region = jd['region']
+        entrenador.tipo = jd['tipo']
+        entrenador.numero_medallas = jd['numero_medallas']
+        entrenador.save()
+        datos={'message':"Entrenador editado!"}
+    else:
+        datos={'message':"entrenador no encontrado..."}
+    return JsonResponse(datos)
+```
+
+Antes de modificar algun registro, usarémos el método GET para obtener el entrenador 2 y así poder comparar. 
+
+El resultado de la consulta es:
+
+<p align="center">
+<img src="/ghImg/img22.png">
+</p>
+
+Para probar el método PUT hacemos un nuevo request (cuadro verde) a la dirección (cuadro rojo):
+
+```
+http://127.0.0.1:8090/api/entrenadores/2
+```
+
+pero mandando como parámetro el JSON en la sección del _body_ (cuadro azul):
+
+```
+{
+  "region":"Sinnoh",
+  "tipo":"Coordinador Pokémon",
+  "numero_medallas":10
+}
+```
+
+<p align="center">
+<img src="/ghImg/img23.png">
+</p>
+
+y al dar click en _Send_, obtenemos que la respuesta fue exitosa:
+
+<p align="center">
+<img src="/ghImg/img24.png">
+</p>
+
+Usando el método GET para obtener el entrenador 2, vemos que ha sido editado:
+
+<p align="center">
+<img src="/ghImg/img25.png">
+</p>
+
+Por último, harémos una edición de un _id_ que no existe:
+
+```
+http://127.0.0.1:8090/api/entrenadores/99
+```
+
+<p align="center">
+<img src="/ghImg/img26.png">
+</p>
+
+Esto demuestra que el método PUT funciona muy bien.
+
+## **6) Método DELETE**
+## **7) **
+## **8) **
+## **9) **
+## **10) **
