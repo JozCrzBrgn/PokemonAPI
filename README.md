@@ -139,4 +139,109 @@ Cremos uno más:
 <img src="/ghImg/img12.png">
 </p>
 
-## **3) Peticiones GET, POST, PUT y DELETE:**
+## **3) Método GET**
+
+Antes de empezar con el método **GET**, debemos incluir las **_url_** que usarémos desde nuestra **api**. Iremos al archivo _urls.py_ que se encuetra en `PokemonAPI/restAPI/urls.py` e incluiremos la libreria _include_ y el _path_ que se muestra:
+
+<p align="center">
+<img src="/ghImg/img13.png">
+</p>
+
+El archivo donde se encuentran estas **api.urls** aun no existe. Haci que crearemos un archivo llamado **urls.py** en la dirección `PokemonAPI/api/urls.py` y ahi agregaremos el _path_:
+
+```
+path('entrenadores/', EntrenadorPokemonView.as_view(), name='entrenadores_list'),
+```
+
+que nos servira cuando se quieran consultar todos los entrenadores, y el _path_:
+
+```
+path('entrenadores/<int:id>', EntrenadorPokemonView.as_view(), name='entrenadores_procesos'),
+```
+que nos servirá cuando se quiere hacer una consulta GET para un _id_ especifico o para hacer un POST, PUT y DELETE. 
+
+En este archivo tambien debemos incluir la clase **EntrenadorPokemonView** que importaremos de _views_, esta clase aun no existe.
+
+En resumen, este archivo debe quedar por el momento, como se muestra a continuación:
+
+<p align="center">
+<img src="/ghImg/img14_1.png">
+</p>
+
+Para comenzar con el método **GET** debemos ir `PokemonAPI/api/views.py` en el archivo _views.py_. Aquí debemos crear la clase **EntrenadorPokemonView** con su método GET usando el siguiente código:
+```
+from django.shortcuts import render
+from django.views import View
+from .models import EntrenadorPokemon
+from django.http.response import JsonResponse
+
+# Create your views here.
+class EntrenadorPokemonView(View):
+    def get(self, request, id=0):
+        if id>0:
+            entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+            if len(entrenadores)>0:
+                entrenador=entrenadores[0]
+                datos={'message':"Entrenador encontrado", 'entrenador':entrenador}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+        else:
+            entrenadores = list(EntrenadorPokemon.objects.values())
+            if len(entrenadores)>0:
+                datos={'message':"Entrenador encontrado", 'entrenadores':entrenadores}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+```
+Este método nos permite hacer una petición para consultar uno o todos los entrenadores pokemon que esten en nuestra base de datos. 
+
+Para probar nuestro método GET, harémos usos del plugin **Thunder Client** que servirá como cliente REST. Para usarlo, damos click en _New Request_.
+
+<p align="center">
+<img src="/ghImg/img15.png">
+</p>
+
+Se nos desplegará una nueva pantalla y debemos ingresar la dirección:
+
+```
+http://127.0.0.1:8090/api/entrenadores/
+```
+
+y dar click en _Send_:
+
+<p align="center">
+<img src="/ghImg/img16_1.png">
+</p>
+
+esto nos devolverá una respuesta en formato JSON con todos los resultados que teniamos en la base de datos:
+
+<p align="center">
+<img src="/ghImg/img17.png">
+</p>
+
+Consultaremos ahora solo con un _id_:
+
+```
+http://127.0.0.1:8090/api/entrenadores/2
+```
+
+<p align="center">
+<img src="/ghImg/img18.png">
+</p>
+
+Por último, harémos una consulta de un _id_ que no existe:
+
+```
+http://127.0.0.1:8090/api/entrenadores/99
+```
+
+<p align="center">
+<img src="/ghImg/img19.png">
+</p>
+
+Esto demuestra que el método GET funciona muy bien.
+
+## **4) Método POST**
+
+
