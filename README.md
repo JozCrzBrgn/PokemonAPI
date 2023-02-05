@@ -422,7 +422,77 @@ http://127.0.0.1:8090/api/entrenadores/99
 Esto demuestra que el método PUT funciona muy bien.
 
 ## **6) Método DELETE**
-## **7) **
+
+El método DELETE nos permitirá eliminar los datos ingresados. 
+
+Queda definido por la siguiente función:
+
+```
+def delete(self, request, id):
+    Entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+    if len(Entrenadores)>0:
+        EntrenadorPokemon.objects.filter(id=id).delete()
+        datos={'message':"Entrenador eliminado!"}
+    else:
+        datos={'message':"Entrenador no encontrado..."}
+    return JsonResponse(datos)
+```
+
+Antes de usar el método DELETE, hacemos un GET para listar todos los cursos y así poder comparar:
+
+<p align="center">
+<img src="/ghImg/img27.png">
+</p>
+
+Para probar el método DELETE hacemos un nuevo request (cuadro verde) a la dirección (cuadro rojo) para eliminar el registro 2:
+
+```
+http://127.0.0.1:8090/api/entrenadores/2
+```
+
+<p align="center">
+<img src="/ghImg/img28.png">
+</p>
+
+y al dar click en _Send_, obtenemos que la respuesta fue exitosa:
+
+<p align="center">
+<img src="/ghImg/img29.png">
+</p>
+
+Usando el método GET volvemos a listar todos los items y vemos que ha sido eliminado el registro 2:
+
+<p align="center">
+<img src="/ghImg/img30.png">
+</p>
+
+Por último, elimarémos un _id_ que no existe:
+
+```
+http://127.0.0.1:8090/api/entrenadores/99
+```
+
+<p align="center">
+<img src="/ghImg/img31.png">
+</p>
+
+Esto demuestra que el método DELETE funciona muy bien.
+
+## **7) PokeAPI**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## **8) **
 ## **9) **
 ## **10) **
