@@ -848,7 +848,41 @@ Damos click en **Add Environment Variable** y creamos la variable **PYTHON_VERSI
 <img src="/ghImg/img59.png">
 </p>
 
-Y por útimo damos click en **Create Web Service**
+Y por útimo damos click en **Create Web Service**. Pero esto me botó un error en el despliegue:
+
+<p align="center">
+<img src="/ghImg/img60.png">
+</p>
+
+,debido a que en mi archivo **build.sh** tenia escrito:
+
+```
+poetry install -r requirements.txt
+```
+
+y debe de ser:
+
+```
+pip install -r requirements.txt
+```
+
+damos click en **Deploy** y esperamos a que termine.
+
+<p align="center">
+<img src="/ghImg/img61.png">
+</p>
+
+Una ves terminado, si todo ha salido bien se verá así:
+
+<p align="center">
+<img src="/ghImg/img62.png">
+</p>
+
+Para probar por ejemplo con el pokemon **electabuzz**, nos vamos a la dirección: `https://pokemonapi-wild.onrender.com/api/pokemon/electabuzz` y obtenemos:
+
+<p align="center">
+<img src="/ghImg/img63.png">
+</p>
 
 
-## **10) **
+
