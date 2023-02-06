@@ -632,6 +632,223 @@ http://127.0.0.1:8090/api/pokemon/squirtle_XX
 
 Esto demuestra que el método GET de la clase **PokemonView** funciona muy bien.
 
-## **8) **
-## **9) **
+## **8) Configuración de Django para su despliegue. **
+
+Dentro de nuestro archivo `.gitignore` vamos a escribir:
+
+```
+db.sqlite3
+my_venv
+__pycache__
+```
+
+Esto para ignorar esos archivos. En la termial escribimos:
+
+```
+git add .
+```
+
+y damos enter. Despues escribimos:
+
+```
+git commit -m "archivos a ignorar"
+```
+y damos enter. 
+
+Como ayuda para desplegar el proyecto me apoyaré de la documentación que viene en la sección de **Update Your App For Render** en la dirección `https://render.com/docs/deploy-django`.
+
+Lo primero es ir a `PokemonAPI/restAPI/settings.py` e importar la libreria **os** y cambiar el **SECRET_KEY'**:
+
+<p align="center">
+<img src="/ghImg/img35.png">
+</p>
+
+luego nos pide cambiar el modo de DEBUG de **True** a `'RENDER' not in os.environ`:
+
+<p align="center">
+<img src="/ghImg/img36.png">
+</p>
+
+después debajo de ALLOWED_HOSTS nos pide escribir lo siguiente:
+
+```
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+```
+
+<p align="center">
+<img src="/ghImg/img37.png">
+</p>
+
+en la terminal instalamos `dj-database-url psycopg2-binary` con el comando **pip install**:
+
+<p align="center">
+<img src="/ghImg/img40.png">
+</p>
+
+e importamos el modulo `dj-database-url` en el archivo _settings.py_:
+
+<p align="center">
+<img src="/ghImg/img41.png">
+</p>
+
+y lo asignamos a DATABASES de la siguiente forma:
+
+<p align="center">
+<img src="/ghImg/img42.png">
+</p>
+
+El siguiente paso es instalar `'whitenoise[brotli]'` con el comando **pip install**:
+
+<p align="center">
+<img src="/ghImg/img43.png">
+</p>
+
+Añadimos en MIDDLEWARE `'whitenoise.middleware.WhiteNoiseMiddleware',` como se muestra:
+
+<p align="center">
+<img src="/ghImg/img44.png">
+</p>
+
+Debajo de STATIC_URL pegamos lo siguiente:
+
+```
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+<p align="center">
+<img src="/ghImg/img45.png">
+</p>
+
+Antes de continuar, vamos a crear un archivo requirements.txt. En la terminal escribimos `pip freeze > requirements.txt`
+
+<p align="center">
+<img src="/ghImg/img46.png">
+</p>
+
+Nos pide crear un **Build Script**, haci que creamos un nuevo archivo llamado _build.sh_ y dentro de este archivo debe ir:
+
+```
+#!/usr/bin/env bash
+# exit on error
+set -o errexit
+
+poetry install -r requirements.txt
+
+python manage.py collectstatic --no-input
+python manage.py migrate
+```
+
+<p align="center">
+<img src="/ghImg/img47.png">
+</p>
+
+Este archivo **build.sh** debe tener permisos de ejecutable, así que abrimos el **Git Bash** dando click en la pestaña 
+
+<p align="center">
+<img src="/ghImg/img48.png">
+</p>
+
+Y escribimos `chmod a+x build.sh` en la consola y damos enter:
+
+<p align="center">
+<img src="/ghImg/img49.png">
+</p>
+
+Como vamos a correr la aplicación con **Gunicorn**, debemos añadir esta dependencia al poyecto. Escribimos `pip install gunicorn` en la termial y despues damos enter. 
+
+Tambien debemos actualizar el archivo **requirements.txt**, asi que escribimos `pip freeze > requirements.txt` en la termial y despues damos enter.
+
+Escribimos `git status` y damos enter. Tambien `git add .` y damos enter. Hacemos un comit, escribimos `git commit -m "configuración de Django lista"` y damos enter. Por último `git push -u origin main` y damos enter.
+
+## **9) Desplegar en Render **
+
+Nos dirigimos a la página de render: `https://render.com/` y nos creamos una cuenta, es gratis y no pide tarjeta de credito. 
+
+Ahora debemos crear una base de datos en PostgreSQL, así que nos dirigimos a `https://dashboard.render.com/` y damos click para crear la base de datos:
+
+<p align="center">
+<img src="/ghImg/img38.png">
+</p>
+
+Ingresamos los datos correspondientes como se muestra, seleccionamos el plan gratuito, damos click en **Create Databse** y esperamos a que termine de crearlo:
+
+<p align="center">
+<img src="/ghImg/img39.png">
+</p>
+
+Cremos un nuevo proyecto, asi que vamos a `https://render.com/` y damos click en **New** y después en **Web Service**: 
+
+<p align="center">
+<img src="/ghImg/img50.png">
+</p>
+
+Damos click en nuestra cuenta:
+
+<p align="center">
+<img src="/ghImg/img51.png">
+</p>
+
+Y seleccionamos el repositorio que le queremos dar acceso a Render y damos click a **Save**:
+
+<p align="center">
+<img src="/ghImg/img52.png">
+</p>
+
+esto nos redirecciona a Render y le damos click en **Connect**:
+
+<p align="center">
+<img src="/ghImg/img53.png">
+</p>
+
+Se nos pedirán unos datos. 
+
+En el campo de `Name:` ponemos el nombre del proyecto, en este caso **_PokemonAPI_**. 
+
+En el campo de `Environment:` ponemos **_Python 3_**. 
+
+En el campo de `Build Command:` ponemos **_./build.sh_**. 
+
+En el campo de `Start Command:` ponemos **_gunicorn restAPI.wsgi_**. Seleccionamos el plan gratuito. Después damos click al botón **Advanced** para crear nuestras variables de entorno. Damos click derecho a **Dashboard** y así tendremos dos ventanas para copiar las variables que necesitamos.
+
+<p align="center">
+<img src="/ghImg/img54.png">
+</p>
+
+Damos click a **PokemonAPI**:
+
+<p align="center">
+<img src="/ghImg/img55.png">
+</p>
+
+Y copiamos de la seccion de **Connections** la **Internal Database URL** 
+
+<p align="center">
+<img src="/ghImg/img56.png">
+</p>
+
+La pegamos donde se muestra y le damos el nombre de **DATABASE_URL.**
+
+<p align="center">
+<img src="/ghImg/img57.png">
+</p>
+
+Damos click en **Add Environment Variable** y creamos la variable **SECRET_KEY**, esta variable es una clave aleatoria que podemos crear usando por ejemplo `https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx`: 
+
+<p align="center">
+<img src="/ghImg/img58.png">
+</p>
+
+Damos click en **Add Environment Variable** y creamos la variable **PYTHON_VERSION**, esta variable es la version que estamos usando de python. La obtenemos desde la terminal con `python --version`:
+
+<p align="center">
+<img src="/ghImg/img59.png">
+</p>
+
+Y por útimo damos click en **Create Web Service**
+
+
 ## **10) **
