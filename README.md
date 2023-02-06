@@ -478,20 +478,159 @@ http://127.0.0.1:8090/api/entrenadores/99
 
 Esto demuestra que el método DELETE funciona muy bien.
 
-## **7) PokeAPI**
+## **7) Método GET de la clase PokemonView**
+
+Para poder consumir la api de Pokémon debemos usar el método get para obtener toda la información de `https://pokeapi.co/` y transformala a un formato JSON para poder obtener las características que necesitemos del pokémon, que en este caso serán su **_id, nombre, peso y altura._**
+
+Crearémos una clase nueva en nuestro archivo _views.py_, que se llamará **PokemonView** que quedará de la siguiente forma:
+
+```
+class PokemonView(View):
+    def get(self, request, pokemon):  
+        try:
+            url_pokeapi = urllib.request.Request(f'https://pokeapi.co/api/v2/pokemon/{pokemon}/')
+            url_pokeapi.add_header('User-Agent', 'charmander')
+            source = urllib.request.urlopen(url_pokeapi).read()
+            jd = json.loads(source)
+            datos={'id':jd['id'], 'nombre':jd['name'], 'altura':jd['height'], 'peso':jd['weight']}
+            return JsonResponse(datos)
+        except:
+            datos={'message':"Pokemon no encontrado..."}
+            return JsonResponse(datos)
+```
+
+Para que esta clase pueda funcionar importamos la librería que se muestra a continuación:
+
+```
+import urllib.request
+```
+
+Por último debemos incluir esta clase en el path, así que nos dirigimos a `PokemonAPI/api/urls.py`. Este archivo debe quedar como se muestra:
+
+```
+from django.urls import path
+from .views import EntrenadorPokemonView, PokemonView
+
+urlpatterns = [
+    path('entrenadores/', EntrenadorPokemonView.as_view(), name='entrenadores_list'),
+    path('entrenadores/<int:id>', EntrenadorPokemonView.as_view(), name='entrenadores_procesos'),
+    path('pokemon/<str:pokemon>', PokemonView.as_view(), name='pokemon'),
+]
+```
+
+Con esto también hemos terminado de editar el archivo _views.py_. A manera de resumen se muestra el código terminado:
+
+```
+from django.shortcuts import render
+from django.views import View
+from .models import EntrenadorPokemon
+from django.http.response import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import json
+import urllib.request
+
+# Create your views here.
+class EntrenadorPokemonView(View):
+    def get(self, request, id=0):
+        if id>0:
+            entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+            if len(entrenadores)>0:
+                entrenador=entrenadores[0]
+                datos={'message':"Entrenador encontrado", 'entrenador':entrenador}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+        else:
+            entrenadores = list(EntrenadorPokemon.objects.values())
+            if len(entrenadores)>0:
+                datos={'message':"Entrenador encontrado", 'entrenadores':entrenadores}
+            else:
+                datos={'message':"Entrenador no encontrado..."}
+            return JsonResponse(datos)
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        jd = json.loads(request.body)
+        print(jd)
+        EntrenadorPokemon.objects.create(
+            region = jd['region'], 
+            tipo = jd['tipo'], 
+            numero_medallas = jd['numero_medallas']
+            )
+        datos={'message':"Entrenador creado!"}
+        return JsonResponse(datos)
+
+    def put(self, request, id):
+        jd = json.loads(request.body)
+        entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+        if len(entrenadores)>0:
+            entrenador = EntrenadorPokemon.objects.get(id=id)
+            entrenador.region = jd['region']
+            entrenador.tipo = jd['tipo']
+            entrenador.numero_medallas = jd['numero_medallas']
+            entrenador.save()
+            datos={'message':"Entrenador editado!"}
+        else:
+            datos={'message':"Entrenador no encontrado..."}
+        return JsonResponse(datos)
+
+    def delete(self, request, id):
+        Entrenadores = list(EntrenadorPokemon.objects.filter(id=id).values())
+        if len(Entrenadores)>0:
+            EntrenadorPokemon.objects.filter(id=id).delete()
+            datos={'message':"Entrenador eliminado!"}
+        else:
+            datos={'message':"Entrenador no encontrado..."}
+        return JsonResponse(datos)
 
 
+class PokemonView(View):
+    def get(self, request, pokemon):  
+        try:
+            url_pokeapi = urllib.request.Request(f'https://pokeapi.co/api/v2/pokemon/{pokemon}/')
+            url_pokeapi.add_header('User-Agent', 'charmander')
+            source = urllib.request.urlopen(url_pokeapi).read()
+            jd = json.loads(source)
+            datos={'id':jd['id'], 'nombre':jd['name'], 'altura':jd['height'], 'peso':jd['weight']}
+            return JsonResponse(datos)
+        except:
+            datos={'message':"Pokemon no encontrado..."}
+            return JsonResponse(datos)
+```
 
+Ahora vamos a probar el funcionamiento de la clase **PokemonView** usando **Thunder Client**, así que ingresamos la dirección (cuadro rojo):
 
+```
+http://127.0.0.1:8090/api/pokemon/squirtle
+```
 
+, seleccionamos el método GET (cuadro verde) y damos click en en _Send_ (cuadro azul):
 
+<p align="center">
+<img src="/ghImg/img32.png">
+</p>
 
+Esto nos retorna la siguente respuesta:
 
+<p align="center">
+<img src="/ghImg/img33.png">
+</p>
 
+Ingresaremos ahora un pokemón que no exista:
 
+```
+http://127.0.0.1:8090/api/pokemon/squirtle_XX
+```
 
+<p align="center">
+<img src="/ghImg/img34.png">
+</p>
 
-
+Esto demuestra que el método GET de la clase **PokemonView** funciona muy bien.
 
 ## **8) **
 ## **9) **
