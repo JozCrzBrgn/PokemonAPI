@@ -5,6 +5,7 @@ from django.http.response import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
+import urllib.request
 
 # Create your views here.
 class EntrenadorPokemonView(View):
@@ -62,3 +63,17 @@ class EntrenadorPokemonView(View):
         else:
             datos={'message':"Entrenador no encontrado..."}
         return JsonResponse(datos)
+
+
+class PokemonView(View):
+    def get(self, request, pokemon):  
+        try:
+            url_pokeapi = urllib.request.Request(f'https://pokeapi.co/api/v2/pokemon/{pokemon}/')
+            url_pokeapi.add_header('User-Agent', 'charmander')
+            source = urllib.request.urlopen(url_pokeapi).read()
+            jd = json.loads(source)
+            datos={'id':jd['id'], 'nombre':jd['name'], 'altura':jd['height'], 'peso':jd['weight']}
+            return JsonResponse(datos)
+        except:
+            datos={'message':"Pokemon no encontrado..."}
+            return JsonResponse(datos)
